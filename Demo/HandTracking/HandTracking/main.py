@@ -169,9 +169,11 @@ def process_img(hand_proc, image):
 
 
 def main():
+    parser = argparse.ArgumentParser(description="MediaPipe Hands node")
+    parser.add_argument("--show_window", action="store_true", help="Show live hand window")
+    args = parser.parse_args()
 
     node = Node()
-
 
     pa.array([])  # initialize pyarrow array
     cap = cv2.VideoCapture(0)
@@ -204,10 +206,10 @@ def main():
                         node.send_output('r_hand_pos',pa.array(r_res))
                     if l_res is not None:
                         node.send_output('l_hand_pos',pa.array(l_res))
-                    # cv2.imshow('MediaPipe Hands', cv2.flip(frame, 1))
-                    cv2.imshow('MediaPipe Hands', frame)
-                    if cv2.waitKey(1) & 0xFF == ord("q"):
-                        break
+                    if args.show_window:
+                        cv2.imshow('MediaPipe Hands', frame)
+                        if cv2.waitKey(1) & 0xFF == ord("q"):
+                            break
 
 
             elif event_type == "ERROR":
