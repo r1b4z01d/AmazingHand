@@ -1,19 +1,20 @@
+
 #include <SCServo.h>
 
+#define S_RXD 18
+#define S_TXD 19
 SCSCL sc;
 
-
 // Finger parameters
-int ID_1 = 1; //Change to servo ID you want to calibrate 
-int ID_2 = 2; //Change to servo ID you want to calibrate
+int ID_1 = 5; //Change to servo ID you want to calibrate 
+int ID_2 = 6; //Change to servo ID you want to calibrate
 int MiddlePos_1 = 511;  // Middle position for servo ID_1
 int MiddlePos_2 = 511;  // Middle position for servo ID_2
 
-
 void setup()
 {
-  Serial1.begin(1000000);
-  //Serial.begin(115200);
+  Serial.begin(115200);
+  Serial1.begin(1000000, SERIAL_8N1, S_RXD, S_TXD);
   sc.pSerial = &Serial1;
   delay(1000);
 }
@@ -24,8 +25,6 @@ void loop()
   CloseFinger();delay(3000);
   OpenFinger();delay(500);
   Nonono();delay(500);
-
-  
   
 }
 
