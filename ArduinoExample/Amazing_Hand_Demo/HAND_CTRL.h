@@ -1,4 +1,13 @@
 
+// Forward declarations (this is a .h file, so Arduino does not auto-generate
+// prototypes; these functions call each other before they are defined).
+void parseHandData(char inChar);
+bool isGestureCommand(char c);
+void handleIncomingByte(char c, String& buffer);
+void processCommandBuffer(const String& line);
+bool parseJointCommand(const String& payload);
+void applyJointTargets(const float* offsets, size_t count, int speed);
+
 void Move_Index (float Pos_1, float Pos_2, int Speed)
 {
   sc.RegWritePos(1, MiddlePos[0]+Pos_1/Step, 0, Speed);sc.RegWritePos(2, MiddlePos[1]+Pos_2/Step, 0, Speed);sc.RegWriteAction();
@@ -296,26 +305,26 @@ bool isGestureCommand(char c) {
   return (c >= '0' && c <= '9') || c == 'a' || c == 'b';
 }
 
-void handleIncomingByte(char c) {
+void handleIncomingByte(char c, String& buffer) {
   if (c == '\r') {
     return;
   }
   if (c == '\n') {
-    if (jointCommandBuffer.length() > 0) {
-      processCommandBuffer(jointCommandBuffer);
-      jointCommandBuffer = "";
+    if (buffer.length() > 0) {
+      processCommandBuffer(buffer);
+      buffer = "";
     }
     return;
   }
-  if (jointCommandBuffer.length() == 0 && isGestureCommand(c)) {
+  if (buffer.length() == 0 && isGestureCommand(c)) {
     parseHandData(c);
     return;
   }
-  if (jointCommandBuffer.length() >= COMMAND_BUFFER_LIMIT) {
-    jointCommandBuffer = "";
+  if (buffer.length() >= COMMAND_BUFFER_LIMIT) {
+    buffer = "";
     return;
   }
-  jointCommandBuffer += c;
+  buffer += c;
 }
 
 void processCommandBuffer(const String& line) {
