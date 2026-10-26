@@ -1,4 +1,5 @@
 import argparse
+import contextlib
 import math
 import socket
 import time
@@ -25,7 +26,6 @@ from window_utils import (
     supports_global_hotkeys,
 )
 
-
 # ---------- MediaPipe Hands setup ----------
 mp_drawing = mp.solutions.drawing_utils
 mp_drawing_styles = mp.solutions.drawing_styles
@@ -48,6 +48,7 @@ def main():
     parser.add_argument("--blink_duration", type=float, default=0.18, help="Blink duration in seconds")
     parser.add_argument("--gaze_speed", type=float, default=0.3, help="Smoothing factor (0-1) controlling how fast the eyes chase a tracked target")
     parser.add_argument("--gaze_idle_speed", type=float, default=0.01, help="Smoothing factor (0-1) controlling eye speed during idle wandering")
+    parser.add_argument("--face_only", action="store_true", help="Run eyes only: completely disable hand tracking and joint streaming (skips loading the hand detector)")
     parser.add_argument("--relay_hand", action="store_true", help="Stream computed hand joints to the wireless hand over TCP")
     parser.add_argument("--hand_host", type=str, default="192.168.1.194", help="Hand relay TCP host")
     parser.add_argument("--hand_port", type=int, default=8765, help="Hand relay TCP port")
@@ -73,6 +74,13 @@ def main():
 
     # Single-window design: Eyes window only; hands can render in bottom panel
     show_eyes = True
+    # Face-only mode fully disables hand tracking and joint streaming.
+    hands_enabled = not args.face_only
+    if args.face_only:
+        if args.relay_hand or args.hand_in_eyes:
+            print("--face_only set: ignoring --relay_hand / --hand_in_eyes; hand tracking disabled.")
+        args.relay_hand = False
+        args.hand_in_eyes = False
     hand_stream_enabled = args.relay_hand
     hand_stream_hotkey = "s"
     global_hotkey_supported = supports_global_hotkeys()
@@ -176,11 +184,15 @@ def main():
         smooth_landmarks=True,
         min_detection_confidence=0.5,
         min_tracking_confidence=0.5,
-    ) as pose_detector, mp_hands.Hands(
-        max_num_hands=1,
-        model_complexity=0,
-        min_detection_confidence=0.5,
-        min_tracking_confidence=0.5,
+    ) as pose_detector, (
+        mp_hands.Hands(
+            max_num_hands=1,
+            model_complexity=0,
+            min_detection_confidence=0.5,
+            min_tracking_confidence=0.5,
+        )
+        if hands_enabled
+        else contextlib.nullcontext()
     ) as hands:
 
         while True:
