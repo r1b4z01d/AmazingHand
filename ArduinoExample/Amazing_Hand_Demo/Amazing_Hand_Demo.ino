@@ -30,11 +30,26 @@ String udpCommandBuffer;
 const size_t COMMAND_BUFFER_LIMIT = 160;
 const int STREAM_DEFAULT_SPEED = 900;
 
-// Define wifi SSIDs and passwords
-const char* ssid = "RobotDisco";                 // Your WiFi SSID
-const char* password = "YOUR_WIFI_PASSWORD";             // Your WiFi Password
-const char* apSsid = "HANDY";                   // Your WiFi SSID
-const char* apPassword = "12345678";            // Your WiFi Password
+// WiFi credentials. Put the real ones in secrets.h beside this sketch (not tracked by git):
+//   #define WIFI_SSID "..."
+//   #define WIFI_PASSWORD "..."
+//   #define AP_PASSWORD "..."      // optional: the fallback access point's
+#if __has_include("secrets.h")
+#include "secrets.h"
+#endif
+#ifndef WIFI_SSID
+#define WIFI_SSID "YOUR_WIFI_SSID"
+#endif
+#ifndef WIFI_PASSWORD
+#define WIFI_PASSWORD "YOUR_WIFI_PASSWORD"
+#endif
+#ifndef AP_PASSWORD
+#define AP_PASSWORD "CHANGE_ME_8CHARS"
+#endif
+const char* ssid = WIFI_SSID;                   // the network the hand joins
+const char* password = WIFI_PASSWORD;
+const char* apSsid = "HANDY";                   // its own access point when that network is absent
+const char* apPassword = AP_PASSWORD;
 
 unsigned long last_print_time = millis();
 
